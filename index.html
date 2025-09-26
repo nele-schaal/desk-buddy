@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MediaPipe Pose Tracking</title>
+
+  <!-- MediaPipe CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 16px; }
+    #wrap { position: relative; width: 640px; }
+    canvas { width: 640px; height: 480px; }
+    video { display: none; } /* Video verstecken, wir zeichnen auf Canvas */
+  </style>
+</head>
+<body>
+  <h1>MediaPipe Pose Tracking</h1>
+  <div id="wrap">
+    <video id="input_video" playsinline></video>
+    <canvas id="output_canvas" width="640" height="480"></canvas>
+  </div>
+
+  <script>
+    const videoEl = document.getElementById('input_video');
+    const canvasEl = document.getElementById('output_canvas');
+    const ctx = canvasEl.getContext('2d');
+
+    // Pose initialisieren
+    const pose = new window.Pose({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+    });
+
+    pose.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      enableSegmentation: false,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+
+    pose.onResults((results) => {
+      ctx.save();
+      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+      ctx.drawImage(results.image, 0, 0, canvasEl.width, canvasEl.height);
+
+      if (results.poseLandmarks) {
+        window.drawConnectors(ctx, results.poseLandmarks, window.POSE_CONNECTIONS, { lineWidth: 4 });
+        window.drawLandmarks(ctx, results.poseLandmarks, { lineWidth: 2 });
+      }
+      ctx.restore();
+    });
+
+    // Webcam starten (kommt aus camera_utils, muss VORHER geladen sein)
+    const camera = new window.Camera(videoEl, {
+      onFrame: async () => { await pose.send({ image: videoEl }); },
+      width: 640,
+      height: 480
+    });
+
+    camera.start().catch(err => {
+      console.error('Kamera-Start fehlgeschlagen:', err);
+      alert('Bitte Kamerazugriff erlauben (⤴️ Adressleiste) und Seite neu laden.');
+    });
+  </script>
+</body>
+</html>
