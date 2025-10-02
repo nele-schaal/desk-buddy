@@ -137,36 +137,29 @@ function chooseFaceLandmarks() {
 
 // ================= CHATGPT INTEGRATION =================
 function analyzePoseFeatures(landmarks) {
-  // Check if arms are raised
   const leftShoulder = landmarks[11];
   const rightShoulder = landmarks[12];
-  const leftElbow = landmarks[13];
-  const rightElbow = landmarks[14];
-  const leftWrist = landmarks[15];
-  const rightWrist = landmarks[16];
+  
+  // Calculate shoulder distance as percentage of screen width
+  const shoulderDistance = Math.abs(
+    map(rightShoulder.x, 0, 1, width, 0) - 
+    map(leftShoulder.x, 0, 1, width, 0)
+  );
+  const shoulderWidthPercentage = (shoulderDistance / width) * 100;
 
-  let poseDescription = "";
-
-  // Check arms position
-  if (leftWrist.y < leftShoulder.y && rightWrist.y < rightShoulder.y) {
-    poseDescription += "Arms raised above shoulders. ";
-  } else if (leftWrist.y > leftShoulder.y && rightWrist.y > rightShoulder.y) {
-    poseDescription += "Arms lowered. ";
+  // Only return shoulder width status
+  if (shoulderWidthPercentage < 50) {
+    return `hunched with shoulders covering only ${Math.round(shoulderWidthPercentage)}% of screen width`;
+  } else {
+    return `confident with shoulders spanning ${Math.round(shoulderWidthPercentage)}% of screen width`;
   }
-
-  // Check if arms are spread
-  if (leftWrist.x < leftShoulder.x && rightWrist.x > rightShoulder.x) {
-    poseDescription += "Arms spread wide. ";
-  }
-
-  return poseDescription;
 }
 
 async function analyzePose(landmarks) {
   const poseFeatures = analyzePoseFeatures(landmarks);
   if (!poseFeatures) return; // Skip if no notable features
 
-  const question = `I am in this pose: ${poseFeatures}. Give me a fun, encouraging one-sentence response about my pose, as if you're a supportive friend.`;
+  const question = `My shoulders are: ${poseFeatures}. If the word "hunched" appears, be a sassy, disappointed fashion critic judging my terrible posture. Use lots of "honey" and "darling" and be dramatically unimpressed. If the word "confident" appears, be an enthusiastic fashionista praising my powerful pose.`;
   
   try {
     const answer = await askChatGPT(question);
