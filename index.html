@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MediaPipe Pose + p5.js</title>
+  <title>MediaPipe Pose + p5.js + ChatGPT</title>
 
   <!-- p5.js -->
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
 
   <!-- MediaPipe Pose -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
 
-  <!-- landmarks definitions (keep your old one) -->
-  <script src="landmarks.js"></script>
-
-  <!-- sketch -->
-  <script src="sketch.js"></script>
+  <!-- Main script -->
+  <script type="module" src="sketch.js"></script>
 </head>
-<body></body>
+<body>
+    <div id="chat-response" style="position: fixed; bottom: 20px; left: 20px; color: white; font-family: Arial; font-size: 24px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;"></div>
+    <div id="timer" style="position: fixed; top: 20px; right: 20px; color: white; font-family: Arial; font-size: 18px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;"></div>
+</body>
 </html>

@@ -1,17 +1,23 @@
-// ========== VARIABLES ==========
+// ================= IMPORTS =================
+import { askChatGPT } from "./chatgpt.js";
+import { VTX7, VTX33, VTX68 } from "./landmarks.js";
+
+// ================= VARIABLES =================
 let video;
 let pose;
 let camera;
 let poseLandmarks = [];
-
-// Array to store all landmarks
-let bodyPoints = new Array(33).fill({x:0, y:0});
+let bodyPoints = new Array(33).fill({ x: 0, y: 0 });
 
 // Optional face mesh
 let TRI, VTX;
 
-// ========== SETUP ==========
-function setup() {
+// Throttle ChatGPT calls
+let lastQueryTime = 0;
+const QUERY_INTERVAL = 20000; // 20 seconds in milliseconds
+
+// Make p5.js functions globally available
+window.setup = function() {
   createCanvas(windowWidth, windowHeight);
 
   // Video capture
@@ -21,19 +27,28 @@ function setup() {
 
   // Initialize MediaPipe Pose
   pose = new Pose({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
   });
   pose.setOptions({
     modelComplexity: 1,
     smoothLandmarks: true,
     enableSegmentation: false,
     minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
+    minTrackingConfidence: 0.5,
   });
+
+  // Pose results callback
   pose.onResults((results) => {
     if (results.poseLandmarks) {
       poseLandmarks = results.poseLandmarks;
       updateBodyPoints();
+
+      // Throttle API calls: once every 20 seconds
+      const now = millis();
+      if (now - lastQueryTime > QUERY_INTERVAL) {
+        analyzePose(poseLandmarks);
+        lastQueryTime = now;
+      }
     }
   });
 
@@ -41,16 +56,16 @@ function setup() {
   camera = new Camera(video.elt, {
     onFrame: async () => await pose.send({ image: video.elt }),
     width: 640,
-    height: 480
+    height: 480,
   });
   camera.start();
 
-  // Choose face landmarks (optional)
+  // Face mesh
   chooseFaceLandmarks();
 }
 
-// ========== DRAW LOOP ==========
-function draw() {
+// ================= DRAW LOOP =================
+window.draw = function() {
   background(0);
 
   // Draw mirrored video
@@ -62,21 +77,24 @@ function draw() {
 
   // Draw body skeleton
   drawBodySkeleton();
+
+  // Update timer
+  updateTimer();
 }
 
-// ========== UPDATE BODY POINTS ==========
+// ================= UPDATE BODY POINTS =================
 function updateBodyPoints() {
   if (!poseLandmarks) return;
 
   for (let i = 0; i < poseLandmarks.length; i++) {
     bodyPoints[i] = {
       x: map(poseLandmarks[i].x, 0, 1, width, 0),
-      y: map(poseLandmarks[i].y, 0, 1, 0, height)
+      y: map(poseLandmarks[i].y, 0, 1, 0, height),
     };
   }
 }
 
-// ========== DRAW BODY ==========
+// ================= DRAW BODY =================
 function drawBodySkeleton() {
   stroke(255);
   strokeWeight(2);
@@ -106,14 +124,76 @@ function drawBodySkeleton() {
 
   // Neck to head
   if (bodyPoints[0] && bodyPoints[11] && bodyPoints[12]) {
-    let neckX = (bodyPoints[11].x + bodyPoints[12].x)/2;
-    let neckY = (bodyPoints[11].y + bodyPoints[12].y)/2;
+    let neckX = (bodyPoints[11].x + bodyPoints[12].x) / 2;
+    let neckY = (bodyPoints[11].y + bodyPoints[12].y) / 2;
     line(neckX, neckY, bodyPoints[0].x, bodyPoints[0].y);
   }
 }
 
-// ========== FACE LANDMARKS ==========
+// ================= FACE LANDMARKS =================
 function chooseFaceLandmarks() {
   VTX = VTX68;
-  TRI = TRI68;
+}
+
+// ================= CHATGPT INTEGRATION =================
+function analyzePoseFeatures(landmarks) {
+  // Check if arms are raised
+  const leftShoulder = landmarks[11];
+  const rightShoulder = landmarks[12];
+  const leftElbow = landmarks[13];
+  const rightElbow = landmarks[14];
+  const leftWrist = landmarks[15];
+  const rightWrist = landmarks[16];
+
+  let poseDescription = "";
+
+  // Check arms position
+  if (leftWrist.y < leftShoulder.y && rightWrist.y < rightShoulder.y) {
+    poseDescription += "Arms raised above shoulders. ";
+  } else if (leftWrist.y > leftShoulder.y && rightWrist.y > rightShoulder.y) {
+    poseDescription += "Arms lowered. ";
+  }
+
+  // Check if arms are spread
+  if (leftWrist.x < leftShoulder.x && rightWrist.x > rightShoulder.x) {
+    poseDescription += "Arms spread wide. ";
+  }
+
+  return poseDescription;
+}
+
+async function analyzePose(landmarks) {
+  const poseFeatures = analyzePoseFeatures(landmarks);
+  if (!poseFeatures) return; // Skip if no notable features
+
+  const question = `I am in this pose: ${poseFeatures}. Give me a fun, encouraging one-sentence response about my pose, as if you're a supportive friend.`;
+  
+  try {
+    const answer = await askChatGPT(question);
+    // Display the response on screen
+    const responseDiv = document.getElementById('chat-response');
+    if (responseDiv) {
+      responseDiv.textContent = answer;
+    }
+    lastQueryTime = millis(); // Update the query time after successful response
+  } catch (err) {
+    console.error("ChatGPT error:", err);
+  }
+}
+
+// ================= TIMER =================
+function updateTimer() {
+  const timerDiv = document.getElementById('timer');
+  if (!timerDiv) return;
+
+  const now = millis();
+  const timeSinceLastQuery = now - lastQueryTime;
+  const timeUntilNext = Math.max(0, QUERY_INTERVAL - timeSinceLastQuery);
+  const secondsRemaining = Math.ceil(timeUntilNext / 1000);
+
+  if (secondsRemaining > 0) {
+    timerDiv.textContent = `Next response in: ${secondsRemaining}s`;
+  } else {
+    timerDiv.textContent = 'Ready for next pose!';
+  }
 }

@@ -2,17 +2,17 @@
 // MediaPipe vertex indices and triangulation arrays
 
 // Simple vertex sets for demo purposes
-var VTX7 = [33, 133, 362, 263, 1, 78, 308];
+export const VTX7 = [33, 133, 362, 263, 1, 78, 308];
 
 // Full 33-pose landmarks
-var VTX33 = [
+export const VTX33 = [
   33, 133, 362, 263, 1, 62, 308, 159, 145, 386, 374,
   6, 102, 331, 2, 13, 14, 70, 105, 107, 336, 334,
   300, 54, 10, 284, 50, 280, 234, 454, 58, 288, 152
 ];
 
 // Popular 68 face landmarks
-var VTX68 = [
+export const VTX68 = [
   127, 234, 132, 58, 172, 150, 149, 148, 152, 377, 378, 379, 397, 288, 361, 454, 356,
   70, 63, 105, 66, 107, 336, 296, 334, 293, 300,
   168, 6, 195, 4, 98, 97, 2, 326, 327,
@@ -25,9 +25,9 @@ var VTX68 = [
 var VTX468 = Array.from({length: 468}, (_, i) => i);
 
 // Triangulation arrays (faces)
-var TRI7 = [0, 1, 4, 2, 3, 4, 4, 6, 5];
+export const TRI7 = [0, 1, 4, 2, 3, 4, 4, 6, 5];
 
-var TRI33 = [
+export const TRI33 = [
   0,7,8, 7,1,8, 2,9,10, 9,3,10,
   17,18,0, 18,7,0, 18,19,7, 19,1,7, 19,11,1, 19,20,11,
   21,22,3, 21,3,9, 20,21,9, 20,9,2, 20,2,11,

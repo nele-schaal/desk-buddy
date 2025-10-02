@@ -1,0 +1,23 @@
+{
+  "name": "desk-buddy",
+  "version": "1.0.0",
+  "description": "**Desk Buddy** is a playful experiment by Nele and Amanda.",
+  "main": "landmarks.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nele-schaal/desk-buddy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nele-schaal/desk-buddy/issues"
+  },
+  "homepage": "https://github.com/nele-schaal/desk-buddy#readme",
+  "dependencies": {
+    "openai": "^6.0.1"
+  }
+}
