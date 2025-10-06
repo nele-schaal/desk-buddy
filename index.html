@@ -14,6 +14,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
 
+  <!-- Gemini AI -->
+  <script type="module">
+    import { GoogleGenerativeAI } from 'https://esm.run/@google/generative-ai@0.1.3';
+    window.GoogleGenerativeAI = GoogleGenerativeAI;
+  </script>
+  
   <!-- Main script -->
   <script type="module" src="sketch.js"></script>
 </head>

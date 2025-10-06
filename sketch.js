@@ -1,5 +1,5 @@
 // ================= IMPORTS =================
-import { askChatGPT } from "./chatgpt.js";
+import { askGemini } from "./gemini.js";
 import { VTX7, VTX33, VTX68 } from "./landmarks.js";
 
 // ================= VARIABLES =================
@@ -12,18 +12,25 @@ let bodyPoints = new Array(33).fill({ x: 0, y: 0 });
 // Optional face mesh
 let TRI, VTX;
 
-// Throttle ChatGPT calls
+// Throttle API calls
 let lastQueryTime = 0;
-const QUERY_INTERVAL = 20000; // 20 seconds in milliseconds
+const QUERY_INTERVAL = 4000; // 4 seconds in milliseconds (15 requests per minute)
 
 // Make p5.js functions globally available
 window.setup = function() {
+  console.log("Setting up...");
   createCanvas(windowWidth, windowHeight);
+  background(0); // Svart bakgrund
 
   // Video capture
-  video = createCapture(VIDEO);
+  console.log("Initializing video capture...");
+  video = createCapture(VIDEO, function(stream) {
+    console.log("Video capture successful");
+  });
   video.size(640, 480);
   video.hide();
+  
+  console.log("Video element created:", video); // Debug
 
   // Initialize MediaPipe Pose
   pose = new Pose({
@@ -53,12 +60,18 @@ window.setup = function() {
   });
 
   // Start camera
-  camera = new Camera(video.elt, {
-    onFrame: async () => await pose.send({ image: video.elt }),
-    width: 640,
-    height: 480,
-  });
-  camera.start();
+  try {
+    camera = new Camera(video.elt, {
+      onFrame: async () => await pose.send({ image: video.elt }),
+      width: 640,
+      height: 480,
+    });
+    camera.start().catch(error => {
+      console.error("Error starting camera:", error);
+    });
+  } catch (error) {
+    console.error("Error initializing camera:", error);
+  }
 
   // Face mesh
   chooseFaceLandmarks();
@@ -67,13 +80,38 @@ window.setup = function() {
 // ================= DRAW LOOP =================
 window.draw = function() {
   background(0);
-
-  // Draw mirrored video
-  push();
-  translate(width, 0);
-  scale(-1, 1);
-  image(video, 0, 0, width, height);
-  pop();
+  
+  // Debug information
+  fill(255);
+  noStroke();
+  textAlign(LEFT, TOP);
+  textSize(16);
+  text('Canvas size: ' + width + 'x' + height, 10, 10);
+  
+  // Check if video is ready
+  if (video && video.loadedmetadata) {
+    text('Video loaded: YES', 10, 30);
+    // Draw mirrored video
+    push();
+    translate(width, 0);
+    scale(-1, 1);
+    image(video, 0, 0, width, height);
+    pop();
+  } else {
+    // Draw loading message
+    text('Video loaded: NO', 10, 30);
+    if (!video) {
+      text('Video object: NOT CREATED', 10, 50);
+    } else if (!video.loadedmetadata) {
+      text('Waiting for video metadata...', 10, 50);
+    }
+    
+    fill(255);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(24);
+    text('Loading camera...', width/2, height/2);
+  }
 
   // Draw body skeleton
   drawBodySkeleton();
@@ -148,7 +186,7 @@ function analyzePoseFeatures(landmarks) {
   const shoulderWidthPercentage = (shoulderDistance / width) * 100;
 
   // Only return shoulder width status
-  if (shoulderWidthPercentage < 50) {
+  if (shoulderWidthPercentage > 50) {
     return `hunched with shoulders covering only ${Math.round(shoulderWidthPercentage)}% of screen width`;
   } else {
     return `confident with shoulders spanning ${Math.round(shoulderWidthPercentage)}% of screen width`;
@@ -162,7 +200,7 @@ async function analyzePose(landmarks) {
   const question = `My shoulders are: ${poseFeatures}. If the word "hunched" appears, be a sassy, disappointed fashion critic judging my terrible posture. Use lots of "honey" and "darling" and be dramatically unimpressed. If the word "confident" appears, be an enthusiastic fashionista praising my powerful pose.`;
   
   try {
-    const answer = await askChatGPT(question);
+    const answer = await askGemini(question);
     // Display the response on screen
     const responseDiv = document.getElementById('chat-response');
     if (responseDiv) {

@@ -1,5 +1,6 @@
 {
   "name": "desk-buddy",
+   "type": "module",
   "version": "1.0.0",
   "description": "**Desk Buddy** is a playful experiment by Nele and Amanda.",
   "main": "landmarks.js",
@@ -18,6 +19,11 @@
   },
   "homepage": "https://github.com/nele-schaal/desk-buddy#readme",
   "dependencies": {
+    "@google/genai": "^1.22.0",
+    "@google/generative-ai": "^0.24.1",
     "openai": "^6.0.1"
   }
+
+  
+
 }
