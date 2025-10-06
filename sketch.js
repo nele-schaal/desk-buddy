@@ -187,9 +187,9 @@ function analyzePoseFeatures(landmarks) {
 
   // Only return shoulder width status
   if (shoulderWidthPercentage > 50) {
-    return `hunched with shoulders covering only ${Math.round(shoulderWidthPercentage)}% of screen width`;
+    return `hunched with shoulders covering only ${Math.round(shoulderWidthPercentage)}`;
   } else {
-    return `confident with shoulders spanning ${Math.round(shoulderWidthPercentage)}% of screen width`;
+    return `confident with shoulders spanning ${Math.round(shoulderWidthPercentage)}`;
   }
 }
 
