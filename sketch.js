@@ -197,7 +197,7 @@ async function analyzePose(landmarks) {
   const poseFeatures = analyzePoseFeatures(landmarks);
   if (!poseFeatures) return; // Skip if no notable features
 
-  const question = `My shoulders are: ${poseFeatures}. If the word "hunched" appears, be a sassy, disappointed fashion critic judging my terrible posture. Use lots of "honey" and "darling" and be dramatically unimpressed. If the word "confident" appears, be an enthusiastic fashionista praising my powerful pose.`;
+  const question = `My shoulders are: ${poseFeatures}. Never actually mention the percentage number connected to the result. If the word "hunched" appears, be a sassy, disappointed fashion critic judging my terrible posture. Use lots of "honey" and "darling" and be dramatically unimpressed. If the word "confident" appears, be an enthusiastic fashionista praising my powerful pose.`;
   
   try {
     const answer = await askGemini(question);
