@@ -1,19 +1,35 @@
 // gemini.js
 // Använd den globala GoogleGenerativeAI från window-objektet
-import { getApiKey } from './config.js';
+import { getCurrentApiKey } from './config.js';
 
-// Global variable to store the AI client
-let genAI = null;
+// Global variables to store AI clients for each key
+let genAI1 = null;
+let genAI2 = null;
+let lastUsedKey = null;
 
-// Initialize the client with API key from env file
-async function initializeGemini() {
-  if (!genAI) {
-    const API_KEY = await getApiKey();
-    if (API_KEY) {
-      genAI = new window.GoogleGenerativeAI(API_KEY);
-    }
+// Initialize or get the appropriate Gemini client
+async function getGeminiClient() {
+  const currentKey = await getCurrentApiKey();
+  if (!currentKey) return null;
+  
+  // If this is the same key as before, return existing client
+  if (currentKey === lastUsedKey && (genAI1 || genAI2)) {
+    return currentKey === lastUsedKey ? (genAI1 || genAI2) : null;
   }
-  return genAI;
+  
+  // Create new client for the current key
+  const newClient = new window.GoogleGenerativeAI(currentKey);
+  
+  // Store client based on key rotation pattern
+  // (This is a simple approach - in practice both keys would have separate clients)
+  if (!genAI1) {
+    genAI1 = newClient;
+  } else if (!genAI2 && currentKey !== lastUsedKey) {
+    genAI2 = newClient;
+  }
+  
+  lastUsedKey = currentKey;
+  return newClient;
 }
 
 /**
@@ -23,10 +39,10 @@ async function initializeGemini() {
  */
 export async function askGemini(prompt) {
   try {
-    // Initialize Gemini client if not already done
-    const client = await initializeGemini();
+    // Get the appropriate Gemini client for current rotation
+    const client = await getGeminiClient();
     if (!client) {
-      return 'API key not available';
+      return 'Sorry, I encountered an error.';
     }
 
     // Välj en modell som finns: gemini-2.5-flash
