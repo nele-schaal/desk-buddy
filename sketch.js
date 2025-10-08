@@ -12,9 +12,8 @@ let bodyPoints = new Array(33).fill({ x: 0, y: 0 });
 // Optional face mesh
 let TRI, VTX;
 
-// Throttle API calls
-let lastQueryTime = 0;
-const QUERY_INTERVAL = 4000; // 4 seconds in milliseconds (15 requests per minute)
+// Button handler
+let analyzeButton;
 
 // Make p5.js functions globally available
 window.setup = function() {
@@ -49,13 +48,6 @@ window.setup = function() {
     if (results.poseLandmarks) {
       poseLandmarks = results.poseLandmarks;
       updateBodyPoints();
-
-      // Throttle API calls: once every 20 seconds
-      const now = millis();
-      if (now - lastQueryTime > QUERY_INTERVAL) {
-        analyzePose(poseLandmarks);
-        lastQueryTime = now;
-      }
     }
   });
 
@@ -75,6 +67,16 @@ window.setup = function() {
 
   // Face mesh
   chooseFaceLandmarks();
+
+  // Initialize button handler
+  analyzeButton = document.getElementById('analyze-button');
+  if (analyzeButton) {
+    analyzeButton.addEventListener('click', () => {
+      if (poseLandmarks) {
+        analyzePose(poseLandmarks);
+      }
+    });
+  }
 }
 
 // ================= DRAW LOOP =================
@@ -115,9 +117,6 @@ window.draw = function() {
 
   // Draw body skeleton
   drawBodySkeleton();
-
-  // Update timer
-  updateTimer();
 }
 
 // ================= UPDATE BODY POINTS =================
@@ -206,7 +205,6 @@ async function analyzePose(landmarks) {
     if (responseDiv) {
       responseDiv.textContent = answer;
     }
-    lastQueryTime = millis(); // Update the query time after successful response
   } catch (err) {
     console.error("ChatGPT error:", err);
   }
