@@ -1,0 +1,11 @@
+# Secure your API keys!
+apiHide.env
+*.env
+config_local.js
+
+# Node modules (if you add any)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
