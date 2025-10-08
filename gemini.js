@@ -1,13 +1,5 @@
 // gemini.js
 // Använd den globala GoogleGenerativeAI från window-objektet
-<<<<<<< HEAD
-
-// Din API-nyckel från AI Studio
-const API_KEY = 'AIzaSyA4d8JVWX1xyqaONMw_0XYQshEHNTkIKxs';
-
-// Initiera klienten
-const genAI = new window.GoogleGenerativeAI(API_KEY);
-=======
 import { getApiKey } from './config.js';
 
 // Global variable to store the AI client
@@ -23,7 +15,6 @@ async function initializeGemini() {
   }
   return genAI;
 }
->>>>>>> parent of 8708f72 (Implement dual API key rotation system and update gemini client initialization)
 
 /**
  * Fråga Gemini AI och returnera svaret som text
@@ -32,17 +23,14 @@ async function initializeGemini() {
  */
 export async function askGemini(prompt) {
   try {
-<<<<<<< HEAD
-=======
     // Initialize Gemini client if not already done
     const client = await initializeGemini();
     if (!client) {
-      return 'API key not available';
+      return 'Sorry, I encountered an error.';
     }
 
->>>>>>> parent of 8708f72 (Implement dual API key rotation system and update gemini client initialization)
     // Välj en modell som finns: gemini-2.5-flash
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = client.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // Skicka prompten till modellen
     const result = await model.generateContent({
